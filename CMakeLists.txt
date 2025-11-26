@@ -1068,8 +1068,11 @@ elseif(WOLFBOOT_TARGET STREQUAL "stm32h757")
     )
 
     target_compile_definitions(stm32h757_hal PUBLIC
-        USE_HAL_DRIVER
-        STM32H757xx
+        CORE_CM7 
+        USE_HAL_DRIVER 
+        STM32H757xx 
+        USE_PWR_DIRECT_SMPS_SUPPLY
+        DEBUG_HARDFAULT
     )
 
     # Link HAL into the HAL wrapper lib so the final image pulls symbols from a single archive
