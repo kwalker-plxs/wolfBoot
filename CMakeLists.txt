@@ -365,7 +365,7 @@ if(NOT DEFINED WOLFBOOT_SECTOR_SIZE)
 endif()
 
 if(NOT DEFINED ARM_TARGETS)
-    list(APPEND ARM_TARGETS cypsoc6 imx kinetis lpc54606j512 mcxa mcxw nrf52 nrf52840 nrf5340 nrf5340_net rp2350 sama5d3 same51 stm32c0 stm32f1 stm32f4 stm32f7 stm32g0 stm32h5 stm32h7 stm32l0 stm32l4 stm32l5 stm32u5 stm32wb ti zynqmp)
+    list(APPEND ARM_TARGETS cypsoc6 imx kinetis lpc54606j512 mcxa mcxw nrf52 nrf52840 nrf5340 nrf5340_net rp2350 sama5d3 same51 stm32c0 stm32f1 stm32f4 stm32f7 stm32g0 stm32h5 stm32h7 stm32h757 stm32l0 stm32l4 stm32l5 stm32u5 stm32wb ti zynqmp)
     set(ARM_TARGETS
         "${ARM_TARGETS}"
         CACHE INTERNAL "")
@@ -1044,6 +1044,36 @@ if(WOLFBOOT_TARGET STREQUAL "stm32l4")
 
     # Link HAL into the HAL wrapper lib so the final image pulls symbols from a single archive
     target_link_libraries(wolfboothal PUBLIC target user_settings stm32l4_hal)
+elseif(WOLFBOOT_TARGET STREQUAL "stm32h757")
+    math(EXPR BOOTLOADER_PARTITION_SIZE "${WOLFBOOT_PARTITION_BOOT_ADDRESS} - ${ARCH_FLASH_OFFSET}" OUTPUT_FORMAT HEXADECIMAL)
+    configure_file(${WOLFBOOT_LSCRIPT_TEMPLATE} target.ld)
+
+    add_library(stm32h757_hal STATIC
+        ${HAL_DRV}/Src/stm32h7xx_hal.c
+        ${HAL_DRV}/Src/stm32h7xx_hal_flash.c
+        ${HAL_DRV}/Src/stm32h7xx_hal_flash_ex.c
+        ${HAL_DRV}/Src/stm32h7xx_hal_cortex.c
+        ${HAL_DRV}/Src/stm32h7xx_hal_rcc.c
+        ${HAL_DRV}/Src/stm32h7xx_hal_pwr.c
+        ${HAL_DRV}/Src/stm32h7xx_hal_pwr_ex.c
+        ${HAL_DRV}/Src/stm32h7xx_hal_gpio.c
+        ${HAL_COMMON}/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.c
+    )
+
+    target_include_directories(stm32h757_hal BEFORE PUBLIC
+        ${WOLFBOOT_ROOT}/hal
+        ${HAL_DRV}/Inc
+        ${HAL_CMSIS_DEV}/Include
+        ${HAL_CMSIS_CORE}/Include
+    )
+
+    target_compile_definitions(stm32h757_hal PUBLIC
+        USE_HAL_DRIVER
+        STM32H757xx
+    )
+
+    # Link HAL into the HAL wrapper lib so the final image pulls symbols from a single archive
+    target_link_libraries(wolfboothal PUBLIC target user_settings stm32h757_hal)
 else()
     target_link_libraries(wolfboothal target user_settings)
 endif()
